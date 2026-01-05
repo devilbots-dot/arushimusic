@@ -6,7 +6,6 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from py_yt import VideosSearch
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
-from pyrogram.enums import ReactionType
 import config
 from SONALI import app
 from SONALI.misc import _boot_
