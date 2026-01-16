@@ -40,7 +40,6 @@ async def get_thumb(videoid):
             except:
                 channel = "Unknown Channel"
 
-        # -------- DOWNLOAD YT THUMB --------
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
@@ -50,27 +49,27 @@ async def get_thumb(videoid):
 
         youtube = Image.open(f"cache/thumb{videoid}.png").convert("RGBA")
 
-        # ============ BACKGROUND ============
+        
         background = youtube.resize((1280, 720)).filter(ImageFilter.GaussianBlur(radius=18))
         enhancer = ImageEnhance.Brightness(background)
         background = enhancer.enhance(0.45)
         draw = ImageDraw.Draw(background)
 
-        # ---- WHITE SPRINKLE ----
-        for _ in range(220):
+        
+        for _ in range(240):
             x = random.randint(0, 1280)
             y = random.randint(0, 720)
             r = random.randint(1, 3)
             draw.ellipse((x, y, x+r, y+r), fill="white")
 
-        # ---- MUSIC NOTE SPRINKLE BACKGROUND ----
+        
         music_font = ImageFont.truetype("SONALI/assets/font.ttf", 28)
-        for _ in range(15):
+        for _ in range(18):
             x = random.randint(100, 1180)
             y = random.randint(80, 640)
             draw.text((x, y), "♪", fill="white", font=music_font)
 
-        # ============ DIAMONDS (ANDAR + NOTES INSIDE) ============
+        
         diamond = Image.new("RGBA", (260, 260), (255,255,255,0))
         ddraw = ImageDraw.Draw(diamond)
 
@@ -80,9 +79,13 @@ async def get_thumb(videoid):
             width=6
         )
 
-        # music notes inside diamonds
-        note_font = ImageFont.truetype("SONALI/assets/font.ttf", 36)
-        ddraw.text((95, 95), "🎵", fill="white", font=note_font)
+        
+        try:
+            note_img = Image.open("SONALI/assets/diamond_note.png").convert("RGBA")
+            note_img = note_img.resize((110, 110))
+            diamond.paste(note_img, (75, 75), note_img)
+        except Exception as e:
+            print("diamond_note.png load error:", e)
 
         # FIXED POSITIONS (ANDAR)
         background.paste(diamond, (20, 230), diamond)     # LEFT
@@ -99,47 +102,47 @@ async def get_thumb(videoid):
         circ = Image.new("RGBA", (CIRCLE_SIZE, CIRCLE_SIZE))
         circ.paste(yt_thumb, (0,0), mask)
 
-        # ============ DENSE MUSIC SPIKES ============
-        RING_PADDING = 40
+        
+        RING_PADDING = 45
         ring_size = CIRCLE_SIZE + (RING_PADDING * 2)
 
         ring = Image.new("RGBA", (ring_size, ring_size), (0,0,0,0))
         rdraw = ImageDraw.Draw(ring)
 
-        # base circle
+        
         rdraw.ellipse(
             (10, 10, ring_size-10, ring_size-10),
             outline="white",
-            width=4
+            width=5
         )
 
         center = ring_size // 2
-        radius = (ring_size // 2) - 10
+        radius = (ring_size // 2) - 12
 
-        # DENSE + RANDOM spikes
-        for angle in range(0, 360, 8):   # more dense
+        
+        for angle in range(0, 360, 6):   # extra dense
             rad = math.radians(angle)
 
             x1 = center + int(radius * math.cos(rad))
             y1 = center + int(radius * math.sin(rad))
 
-            spike_length = random.randint(10, 45)
+            spike_length = random.randint(12, 55)  # longer random spikes
 
             x2 = center + int((radius + spike_length) * math.cos(rad))
             y2 = center + int((radius + spike_length) * math.sin(rad))
 
-            rdraw.line([(x1, y1), (x2, y2)], fill="white", width=3)
+            rdraw.line([(x1, y1), (x2, y2)], fill="white", width=4)
 
         # center align
-        ring_x = 400
-        ring_y = 120
+        ring_x = 390
+        ring_y = 115
         circle_x = ring_x + RING_PADDING
         circle_y = ring_y + RING_PADDING
 
         background.paste(ring, (ring_x, ring_y), ring)
         background.paste(circ, (circle_x, circle_y), circ)
 
-        # ============ TEXT (YOUR STYLE) ============
+        
         arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
         font = ImageFont.truetype("SONALI/assets/font.ttf", 30)
         bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 33)
@@ -148,12 +151,12 @@ async def get_thumb(videoid):
         text_size = draw.textsize("@Starmusic by devil  ", font=font)
         draw.text(
             (1280 - text_size[0] - 10, 10),
-            "@Starmusic",
+            "@Starmusic by devil",
             fill="yellow",
             font=font,
         )
 
-        draw.text((980, 60), "Credit", fill="cyan", font=small_neon)
+        draw.text((980, 60), "   Credit", fill="cyan", font=small_neon)
         draw.text((980, 85), "@Ankitgupta21444", fill="white", font=small_neon)
 
         draw.text(
@@ -175,7 +178,7 @@ async def get_thumb(videoid):
         start_x = 150
         end_x = 1130
         line_y = 670
-        draw.line([(start_x, line_y), (end_x, line_y)], fill="white", width=4)
+        draw.line([(start_x, line_y), (end_x, line_y)], fill="white", width=5)
 
         draw.text((end_x + 10, 655), duration, fill="white", font=bold_font)
 
