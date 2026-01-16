@@ -81,14 +81,14 @@ async def get_thumb(videoid):
         diamond = Image.new("RGBA", (260, 260), (255,255,255,0))
         ddraw = ImageDraw.Draw(diamond)
 
-        # outer line
+        # outer line (orange neon)
         ddraw.polygon(
             [(130,0),(260,130),(130,260),(0,130)],
             outline="orange",
             width=4
         )
 
-        # inner line
+        # inner line (green neon)
         ddraw.polygon(
             [(130,10),(250,130),(130,250),(10,130)],
             outline="lime",
@@ -102,9 +102,8 @@ async def get_thumb(videoid):
         except Exception as e:
             print("diamond_note.png load error:", e)
 
-        # SHIFT DIAMONDS UP
-        background.paste(diamond, (20, 180), diamond)     # LEFT (upar)
-        background.paste(diamond, (1000, 180), diamond)  # RIGHT (upar)
+        background.paste(diamond, (20, 180), diamond)
+        background.paste(diamond, (1000, 180), diamond)
 
         # ============ CENTER CIRCLE ============
         CIRCLE_SIZE = 420
@@ -126,7 +125,7 @@ async def get_thumb(videoid):
 
         rdraw.ellipse(
             (10, 10, ring_size-10, ring_size-10),
-            outline="cyan",
+            outline="white",
             width=5
         )
 
@@ -142,7 +141,6 @@ async def get_thumb(videoid):
             y2 = center + int((radius + spike_length) * math.sin(rad))
             rdraw.line([(x1, y1), (x2, y2)], fill="white", width=4)
 
-        # SHIFT CIRCLE UP
         ring_x = 390
         ring_y = 80
         circle_x = ring_x + RING_PADDING
@@ -156,20 +154,21 @@ async def get_thumb(videoid):
         font = ImageFont.truetype("SONALI/assets/font.ttf", 32)
         bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 34)
         small_neon = ImageFont.truetype("SONALI/assets/font.ttf", 22)
+        icon_font = ImageFont.truetype("SONALI/assets/font.ttf", 40)
 
         # WATERMARK
         text_size = draw.textsize("@Starmusic by devil", font=font)
         draw.text(
             (1280 - text_size[0] - 10, 10),
-            "@Ankitgupta21444",
+            "@Starmusic by devil",
             fill="yellow",
             font=font,
         )
 
-        draw.text((980, 60), "•", fill="cyan", font=small_neon)
-        draw.text((980, 85), "°", fill="white", font=small_neon)
+        draw.text((980, 60), "   Credit", fill="cyan", font=small_neon)
+        draw.text((980, 85), "@Ankitgupta21444", fill="white", font=small_neon)
 
-        # CHANNEL + VIEWS (WHITE)
+        # CHANNEL + VIEWS
         draw.text(
             (55, 560),
             f"{channel} | {views[:23]}",
@@ -183,12 +182,35 @@ async def get_thumb(videoid):
         draw.text(
             (title_x, 600),
             title,
-            fill="yellow",
+            fill="cyan",
             font=font,
         )
 
-        # ===== NEW CUSTOM TIMELINE =====
-        draw.text((540, 640), "❍━━━━ლ━━━━❍", fill="white", font=bold_font)
+        # ===== MEDIUM CENTER TIMELINE (WHITE) =====
+        timeline_text = "❍━━━ლ━━━❍"
+        tw, _ = draw.textsize(timeline_text, font=bold_font)
+        tx = (1280 - tw) // 2
+        ty = 635
+        draw.text((tx, ty), timeline_text, fill="white", font=bold_font)
+
+        # ===== DRAW PLAYER CONTROLS (NO IMAGE) =====
+        cx = 400
+        base_y = 670
+
+        # Shuffle
+        draw.text((cx, base_y), "🔀", fill="white", font=icon_font)
+
+        # Previous
+        draw.text((cx + 120, base_y), "⏮", fill="white", font=icon_font)
+
+        # Play/Pause
+        draw.text((cx + 240, base_y), "⏯", fill="white", font=icon_font)
+
+        # Next
+        draw.text((cx + 360, base_y), "⏭", fill="white", font=icon_font)
+
+        # Repeat
+        draw.text((cx + 480, base_y), "🔁", fill="white", font=icon_font)
 
         try:
             os.remove(f"cache/thumb{videoid}.png")
