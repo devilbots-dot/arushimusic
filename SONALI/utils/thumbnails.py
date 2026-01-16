@@ -48,7 +48,6 @@ async def get_thumb(videoid):
             except:
                 channel = "Unknown Channel"
 
-        # -------- DOWNLOAD YT THUMB --------
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
@@ -63,32 +62,28 @@ async def get_thumb(videoid):
         background = enhancer.enhance(0.45)
         draw = ImageDraw.Draw(background)
 
-        # ---- WHITE SPRINKLE ----
         for _ in range(240):
             x = random.randint(0, 1280)
             y = random.randint(0, 720)
             r = random.randint(1, 3)
             draw.ellipse((x, y, x+r, y+r), fill="white")
 
-        # ---- MUSIC NOTE SPRINKLE ----
         music_font = ImageFont.truetype("SONALI/assets/font.ttf", 28)
         for _ in range(18):
             x = random.randint(100, 1180)
             y = random.randint(60, 580)
             draw.text((x, y), "♪", fill="white", font=music_font)
 
-        # ============ DOUBLE-LINE DIAMONDS ============
+        # ============ DOUBLE LINE DIAMONDS ============
         diamond = Image.new("RGBA", (260, 260), (255,255,255,0))
         ddraw = ImageDraw.Draw(diamond)
 
-        # outer line (orange neon)
         ddraw.polygon(
             [(130,0),(260,130),(130,260),(0,130)],
             outline="orange",
             width=4
         )
 
-        # inner line (green neon)
         ddraw.polygon(
             [(130,10),(250,130),(130,250),(10,130)],
             outline="lime",
@@ -102,8 +97,8 @@ async def get_thumb(videoid):
         except Exception as e:
             print("diamond_note.png load error:", e)
 
-        background.paste(diamond, (20, 180), diamond)
-        background.paste(diamond, (1000, 180), diamond)
+        background.paste(diamond, (20, 160), diamond)
+        background.paste(diamond, (1000, 160), diamond)
 
         # ============ CENTER CIRCLE ============
         CIRCLE_SIZE = 420
@@ -116,7 +111,6 @@ async def get_thumb(videoid):
         circ = Image.new("RGBA", (CIRCLE_SIZE, CIRCLE_SIZE))
         circ.paste(yt_thumb, (0,0), mask)
 
-        # ============ MUSIC SPIKES ============
         RING_PADDING = 45
         ring_size = CIRCLE_SIZE + (RING_PADDING * 2)
 
@@ -168,48 +162,38 @@ async def get_thumb(videoid):
         draw.text((980, 60), "   Credit", fill="cyan", font=small_neon)
         draw.text((980, 85), "@Ankitgupta21444", fill="white", font=small_neon)
 
-        # CHANNEL + VIEWS
         draw.text(
-            (55, 560),
+            (55, 540),
             f"{channel} | {views[:23]}",
             fill="white",
             font=arial,
         )
 
-        # ===== CENTER TITLE (CYAN BOLD) =====
+        # ===== CENTER TITLE (CYAN) =====
         title_w, _ = draw.textsize(title, font=font)
         title_x = (1280 - title_w) // 2
         draw.text(
-            (title_x, 600),
+            (title_x, 580),
             title,
             fill="cyan",
             font=font,
         )
 
-        # ===== MEDIUM CENTER TIMELINE (WHITE) =====
+        # ===== TIMELINE (VISIBLE + CENTER) =====
         timeline_text = "❍━━━ლ━━━❍"
         tw, _ = draw.textsize(timeline_text, font=bold_font)
         tx = (1280 - tw) // 2
-        ty = 635
+        ty = 620
         draw.text((tx, ty), timeline_text, fill="white", font=bold_font)
 
-        # ===== DRAW PLAYER CONTROLS (NO IMAGE) =====
-        cx = 400
-        base_y = 670
+        # ===== PLAYER CONTROLS (SELF DRAWN) =====
+        cx = 420
+        base_y = 660
 
-        # Shuffle
         draw.text((cx, base_y), "🔀", fill="white", font=icon_font)
-
-        # Previous
         draw.text((cx + 120, base_y), "⏮", fill="white", font=icon_font)
-
-        # Play/Pause
         draw.text((cx + 240, base_y), "⏯", fill="white", font=icon_font)
-
-        # Next
         draw.text((cx + 360, base_y), "⏭", fill="white", font=icon_font)
-
-        # Repeat
         draw.text((cx + 480, base_y), "🔁", fill="white", font=icon_font)
 
         try:
