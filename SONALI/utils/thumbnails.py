@@ -48,6 +48,7 @@ async def get_thumb(videoid):
             except:
                 channel = "Unknown Channel"
 
+        # -------- DOWNLOAD YT THUMB --------
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
@@ -62,6 +63,7 @@ async def get_thumb(videoid):
         background = enhancer.enhance(0.45)
         draw = ImageDraw.Draw(background)
 
+        # sparkles
         for _ in range(240):
             x = random.randint(0, 1280)
             y = random.randint(0, 720)
@@ -111,6 +113,7 @@ async def get_thumb(videoid):
         circ = Image.new("RGBA", (CIRCLE_SIZE, CIRCLE_SIZE))
         circ.paste(yt_thumb, (0,0), mask)
 
+        # ============ SPIKES ============
         RING_PADDING = 45
         ring_size = CIRCLE_SIZE + (RING_PADDING * 2)
 
@@ -148,7 +151,6 @@ async def get_thumb(videoid):
         font = ImageFont.truetype("SONALI/assets/font.ttf", 32)
         bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 34)
         small_neon = ImageFont.truetype("SONALI/assets/font.ttf", 22)
-        icon_font = ImageFont.truetype("SONALI/assets/font.ttf", 40)
 
         # WATERMARK
         text_size = draw.textsize("@Starmusic by devil", font=font)
@@ -159,8 +161,8 @@ async def get_thumb(videoid):
             font=font,
         )
 
-        draw.text((980, 60), "   Credit", fill="cyan", font=small_neon)
-        draw.text((980, 85), "@Ankitgupta21444", fill="white", font=small_neon)
+        draw.text((980, 60), "   •", fill="cyan", font=small_neon)
+        draw.text((980, 85), "°", fill="white", font=small_neon)
 
         draw.text(
             (55, 540),
@@ -169,7 +171,7 @@ async def get_thumb(videoid):
             font=arial,
         )
 
-        # ===== CENTER TITLE (CYAN) =====
+        # ===== CENTER TITLE =====
         title_w, _ = draw.textsize(title, font=font)
         title_x = (1280 - title_w) // 2
         draw.text(
@@ -179,35 +181,36 @@ async def get_thumb(videoid):
             font=font,
         )
 
-        # ===== TIMELINE (VISIBLE + CENTER) =====
+        # ===== TIMELINE =====
         timeline_text = "❍━━━ლ━━━❍"
         tw, _ = draw.textsize(timeline_text, font=bold_font)
         tx = (1280 - tw) // 2
         ty = 620
         draw.text((tx, ty), timeline_text, fill="white", font=bold_font)
 
-        # ===== PLAYER CONTROLS (PROPER SHAPES - ALWAYS VISIBLE) =====
-btn_y = 660
+        # ===== PLAYER CONTROLS (ALWAYS VISIBLE) =====
+        btn_y = 660
 
-# SHUFFLE (left)
-draw.line([(400, btn_y+10), (450, btn_y+10)], fill="white", width=3)
-draw.line([(450, btn_y+10), (440, btn_y)], fill="white", width=3)
-draw.line([(440, btn_y+20), (450, btn_y+10)], fill="white", width=3)
+        # SHUFFLE
+        draw.line([(400, btn_y+10), (450, btn_y+10)], fill="white", width=3)
+        draw.line([(450, btn_y+10), (440, btn_y)], fill="white", width=3)
+        draw.line([(440, btn_y+20), (450, btn_y+10)], fill="white", width=3)
 
-# PREVIOUS
-draw.polygon([(520, btn_y), (560, btn_y+15), (520, btn_y+30)], fill="white")
+        # PREVIOUS
+        draw.polygon([(520, btn_y), (560, btn_y+15), (520, btn_y+30)], fill="white")
 
-# PLAY BUTTON (circle + triangle)
-draw.ellipse((610, btn_y-5, 690, btn_y+35), outline="white", width=3)
-draw.polygon([(635, btn_y+5), (665, btn_y+15), (635, btn_y+25)], fill="white")
+        # PLAY BUTTON
+        draw.ellipse((610, btn_y-5, 690, btn_y+35), outline="white", width=3)
+        draw.polygon([(635, btn_y+5), (665, btn_y+15), (635, btn_y+25)], fill="white")
 
-# NEXT
-draw.polygon([(760, btn_y), (720, btn_y+15), (760, btn_y+30)], fill="white")
+        # NEXT
+        draw.polygon([(760, btn_y), (720, btn_y+15), (760, btn_y+30)], fill="white")
 
-# REPEAT (right)
-draw.line([(820, btn_y+5), (870, btn_y+5)], fill="white", width=3)
-draw.line([(870, btn_y+5), (860, btn_y-5)], fill="white", width=3)
-draw.line([(860, btn_y+15), (870, btn_y+5)], fill="white", width=3)
+        # REPEAT
+        draw.line([(820, btn_y+5), (870, btn_y+5)], fill="white", width=3)
+        draw.line([(870, btn_y+5), (860, btn_y-5)], fill="white", width=3)
+        draw.line([(860, btn_y+15), (870, btn_y+5)], fill="white", width=3)
+
         try:
             os.remove(f"cache/thumb{videoid}.png")
         except:
