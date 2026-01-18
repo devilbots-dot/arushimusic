@@ -49,54 +49,37 @@ async def get_thumb(videoid):
 
         youtube = Image.open(f"cache/thumb{videoid}.png").convert("RGBA")
 
-        # Background
+        
         background = youtube.resize((1280, 720)).filter(ImageFilter.GaussianBlur(radius=18))
         enhancer = ImageEnhance.Brightness(background)
         background = enhancer.enhance(0.45)
         draw = ImageDraw.Draw(background)
 
-        # Stars
+        
         for _ in range(240):
             x = random.randint(0, 1280)
             y = random.randint(0, 720)
             r = random.randint(1, 3)
             draw.ellipse((x, y, x+r, y+r), fill="white")
 
-        # Music notes text sprinkle
+        
         music_font = ImageFont.truetype("SONALI/assets/font.ttf", 28)
         for _ in range(18):
             x = random.randint(100, 1180)
             y = random.randint(80, 640)
             draw.text((x, y), "♪", fill="white", font=music_font)
 
-        # Music note PNG sprinkle (NEW)
-        try:
-            sprinkle_note = Image.open("SONALI/assets/diamond_note.png").convert("RGBA")
-            sprinkle_note = sprinkle_note.resize((30, 30))
-            for _ in range(35):
-                sx = random.randint(0, 1280)
-                sy = random.randint(0, 720)
-                background.paste(sprinkle_note, (sx, sy), sprinkle_note)
-        except Exception as e:
-            print("sprinkle note error:", e)
-
-        # Diamond base
+        
         diamond = Image.new("RGBA", (260, 260), (255,255,255,0))
         ddraw = ImageDraw.Draw(diamond)
 
-        # Triple layer diamond (NEW)
-        sizes = [250, 260, 270]
-        for s in sizes:
-            temp = Image.new("RGBA", (s, s), (255,255,255,0))
-            tdraw = ImageDraw.Draw(temp)
-            tdraw.polygon(
-                [(s//2,0),(s, s//2),(s//2,s),(0,s//2)],
-                outline="white",
-                width=3
-            )
-            diamond.paste(temp, ((260-s)//2, (260-s)//2), temp)
+        ddraw.polygon(
+            [(130,0),(260,130),(130,260),(0,130)],
+            outline="white",
+            width=6
+        )
 
-        # Center music note in diamond
+        
         try:
             note_img = Image.open("SONALI/assets/diamond_note.png").convert("RGBA")
             note_img = note_img.resize((110, 110))
@@ -104,11 +87,11 @@ async def get_thumb(videoid):
         except Exception as e:
             print("diamond_note.png load error:", e)
 
-        # Paste diamonds
-        background.paste(diamond, (20, 230), diamond)     # Left
-        background.paste(diamond, (1000, 230), diamond)  # Right
+        # FIXED POSITIONS (ANDAR)
+        background.paste(diamond, (20, 230), diamond)     # LEFT
+        background.paste(diamond, (1000, 230), diamond)  # RIGHT
 
-        # ===== Center Circle =====
+        # ============ CENTER CIRCLE ============
         CIRCLE_SIZE = 420
         yt_thumb = youtube.resize((CIRCLE_SIZE, CIRCLE_SIZE))
 
@@ -119,41 +102,38 @@ async def get_thumb(videoid):
         circ = Image.new("RGBA", (CIRCLE_SIZE, CIRCLE_SIZE))
         circ.paste(yt_thumb, (0,0), mask)
 
+        
         RING_PADDING = 45
         ring_size = CIRCLE_SIZE + (RING_PADDING * 2)
 
         ring = Image.new("RGBA", (ring_size, ring_size), (0,0,0,0))
         rdraw = ImageDraw.Draw(ring)
 
-        # Outer ring
+        
         rdraw.ellipse(
             (10, 10, ring_size-10, ring_size-10),
             outline="white",
             width=5
         )
 
-        # Two extra inner rings (NEW)
-        rdraw.ellipse((35, 35, ring_size-35, ring_size-35), outline="white", width=3)
-        rdraw.ellipse((60, 60, ring_size-60, ring_size-60), outline="white", width=2)
-
         center = ring_size // 2
         radius = (ring_size // 2) - 12
 
-        # Spikes
-        for angle in range(0, 360, 6):
+        
+        for angle in range(0, 360, 6):   # extra dense
             rad = math.radians(angle)
 
             x1 = center + int(radius * math.cos(rad))
             y1 = center + int(radius * math.sin(rad))
 
-            spike_length = random.randint(12, 55)
+            spike_length = random.randint(12, 55)  # longer random spikes
 
             x2 = center + int((radius + spike_length) * math.cos(rad))
             y2 = center + int((radius + spike_length) * math.sin(rad))
 
             rdraw.line([(x1, y1), (x2, y2)], fill="white", width=4)
 
-        # Positioning
+        # center align
         ring_x = 390
         ring_y = 115
         circle_x = ring_x + RING_PADDING
@@ -162,24 +142,22 @@ async def get_thumb(videoid):
         background.paste(ring, (ring_x, ring_y), ring)
         background.paste(circ, (circle_x, circle_y), circ)
 
-        # Fonts
+        
         arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
         font = ImageFont.truetype("SONALI/assets/font.ttf", 30)
         bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 33)
         small_neon = ImageFont.truetype("SONALI/assets/font.ttf", 22)
-        title_font = ImageFont.truetype("SONALI/assets/font.ttf", 38)
 
-        # Watermark
-        text_size = draw.textsize("@Starmusic by devil  ", font=font)
+        text_size = draw.textsize("@Ankitgupta21444 ", font=font)
         draw.text(
             (1280 - text_size[0] - 10, 10),
-            "@Starmusic by devil",
+            "@Ankitgupta21444",
             fill="yellow",
             font=font,
         )
 
-        draw.text((980, 60), "   Credit", fill="cyan", font=small_neon)
-        draw.text((980, 85), "@Ankitgupta21444", fill="white", font=small_neon)
+        draw.text((980, 60), "   *", fill="cyan", font=small_neon)
+        draw.text((980, 85), "°", fill="white", font=small_neon)
 
         draw.text(
             (55, 580),
@@ -188,27 +166,19 @@ async def get_thumb(videoid):
             font=arial,
         )
 
-        # ===== TITLE CENTER UNDER CIRCLE (5 WORDS, YELLOW, BOLD) =====
-        words = title.split()[:5]
-        short_title = " ".join(words)
-
-        t_size = draw.textsize(short_title, font=title_font)
-        center_x = (1280 - t_size[0]) // 2
-
         draw.text(
-            (center_x, 540),
-            short_title,
-            fill="yellow",
-            font=title_font
+            (57, 620),
+            title,
+            (255, 255, 255),
+            font=font,
         )
 
         draw.text((55, 655), "00:00", fill="white", font=bold_font)
 
-        # ===== SHORTER & BOLDER TIMELINE =====
-        start_x = 200
-        end_x = 1080
+        start_x = 150
+        end_x = 1130
         line_y = 670
-        draw.line([(start_x, line_y), (end_x, line_y)], fill="white", width=7)
+        draw.line([(start_x, line_y), (end_x, line_y)], fill="white", width=5)
 
         draw.text((end_x + 10, 655), duration, fill="white", font=bold_font)
 
