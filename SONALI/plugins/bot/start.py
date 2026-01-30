@@ -8,7 +8,7 @@ from py_yt import VideosSearch
 
 import config
 from SONALI import app
-from SONALI.misc import boot
+from SONALI.misc import _boot_
 from SONALI.plugins.sudo.sudoers import sudoers_list
 from SONALI.utils.database import (
     add_served_chat,
@@ -24,7 +24,7 @@ from SONALI.utils.inline import help_pannel, private_panel, start_panel
 from config import BANNED_USERS
 from strings import get_string
 
-# ---------------- EFFECTS ---------------- #
+# ================= MEDIA ================= #
 
 NEXI_VID = [
     "https://telegra.ph/file/1a3c152717eb9d2e94dc2.mp4",
@@ -43,12 +43,9 @@ EFFECT_IDS = [
     5159385139981059251,
 ]
 
-STICKERS = [
-    "CAACAgUAAxkBAAIBO2i1Spi48ZdWCNehv-GklSI9aRYWAAJ9GAACXB-pVds_sm8brMEqHgQ",
-    "CAACAgUAAxkBAAIBOmi1Sogwaoh01l5-e-lJkK1VNY6MAAIlGAACKI6wVVNEvN-6z3Z7HgQ",
-]
-
 REACTIONS = ["🔥", "❤️", "🎉", "😍", "😂", "⚡", "💯"]
+
+# ================= EFFECT HELPERS ================= #
 
 async def react_random(msg: Message):
     try:
@@ -56,18 +53,15 @@ async def react_random(msg: Message):
     except:
         pass
 
-# ---------------- PRIVATE START ---------------- #
+# ================= PRIVATE START ================= #
 
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
 async def start_pm(client, message: Message, _):
     await add_served_user(message.from_user.id)
 
-    # 🔥 effects only
+    # effects (safe)
     await react_random(message)
-    st = await message.reply_sticker(random.choice(STICKERS))
-    await asyncio.sleep(1)
-    await st.delete()
 
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
@@ -86,7 +80,7 @@ async def start_pm(client, message: Message, _):
         if name.startswith("sud"):
             await sudoers_list(client=client, message=message, _=_)
             if await is_on_off(2):
-                return await app.send_message(
+                await app.send_message(
                     chat_id=config.LOGGER_ID,
                     text=f"{message.from_user.mention} just started the bot to check sudolist.\n\nUser ID: {message.from_user.id}",
                 )
@@ -129,7 +123,7 @@ async def start_pm(client, message: Message, _):
             await react_random(sent)
             return
 
-    # 🔁 NORMAL START (OLD LOGIC)
+    # NORMAL START (unchanged)
     out = private_panel(_)
     sent = await message.reply_video(
         random.choice(NEXI_VID),
@@ -139,13 +133,13 @@ async def start_pm(client, message: Message, _):
     )
     await react_random(sent)
 
-# ---------------- GROUP START ---------------- #
+# ================= GROUP START ================= #
 
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def start_gp(client, message: Message, _):
     out = start_panel(_)
-    uptime = int(time.time() - boot)
+    uptime = int(time.time() - _boot_)
 
     sent = await message.reply_video(
         random.choice(NEXI_VID),
@@ -156,7 +150,7 @@ async def start_gp(client, message: Message, _):
     await react_random(sent)
     await add_served_chat(message.chat.id)
 
-# ---------------- WELCOME ---------------- #
+# ================= WELCOME ================= #
 
 @app.on_message(filters.new_chat_members, group=-1)
 async def welcome(client, message: Message):
