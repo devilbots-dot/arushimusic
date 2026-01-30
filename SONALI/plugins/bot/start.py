@@ -1,15 +1,17 @@
 import time
 import random
-import asyncio
 from pyrogram import filters
 from pyrogram.enums import ChatType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from py_yt import VideosSearch
 
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 import config
 from SONALI import app
 from SONALI.misc import _boot_
 from SONALI.plugins.sudo.sudoers import sudoers_list
+from SONALI.utils.database import get_served_chats, get_served_users, get_sudoers
+from SONALI.utils import bot_sys_stats
 from SONALI.utils.database import (
     add_served_chat,
     add_served_user,
@@ -24,73 +26,60 @@ from SONALI.utils.inline import help_pannel, private_panel, start_panel
 from config import BANNED_USERS
 from strings import get_string
 
-# ================= MEDIA ================= #
+# --------------------------
 
 NEXI_VID = [
-    "https://telegra.ph/file/1a3c152717eb9d2e94dc2.mp4",
-    "https://files.catbox.moe/ln00jb.mp4",
-    "https://graph.org/file/83ebf52e8bbf138620de7.mp4",
-    "https://files.catbox.moe/0fq20c.mp4",
-    "https://graph.org/file/318eac81e3d4667edcb77.mp4",
-    "https://graph.org/file/7c1aa59649fbf3ab422da.mp4",
-    "https://files.catbox.moe/t0nepm.mp4",
+"https://telegra.ph/file/1a3c152717eb9d2e94dc2.mp4",
+"https://files.catbox.moe/ln00jb.mp4",
+"https://graph.org/file/83ebf52e8bbf138620de7.mp4",
+"https://files.catbox.moe/0fq20c.mp4",
+"https://graph.org/file/318eac81e3d4667edcb77.mp4",
+"https://graph.org/file/7c1aa59649fbf3ab422da.mp4",
+"https://files.catbox.moe/t0nepm.mp4",
 ]
 
-EFFECT_IDS = [
-    5046509860389126442,
-    5107584321108051014,
-    5104841245755180586,
-    5159385139981059251,
-]
-
+# 🔥 Random reaction list
 REACTIONS = ["🔥", "❤️", "🎉", "😍", "😂", "⚡", "💯"]
-
-# ================= EFFECT HELPERS ================= #
 
 async def react_random(msg: Message):
     try:
-        await msg.react(random.choice(REACTIONS))
+        await app.send_reaction(
+            chat_id=msg.chat.id,
+            message_id=msg.id,
+            reaction=random.choice(REACTIONS)
+        )
     except:
         pass
 
-# ================= PRIVATE START ================= #
 
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
 async def start_pm(client, message: Message, _):
     await add_served_user(message.from_user.id)
-
-    # effects (safe)
-    await react_random(message)
-
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
-
-        if name.startswith("help"):
+        if name[0:4] == "help":
             keyboard = help_pannel(_)
             sent = await message.reply_video(
                 random.choice(NEXI_VID),
                 caption=_["help_1"].format(config.SUPPORT_CHAT),
                 reply_markup=keyboard,
-                message_effect_id=random.choice(EFFECT_IDS),
             )
             await react_random(sent)
             return
-
-        if name.startswith("sud"):
+        if name[0:3] == "sud":
             await sudoers_list(client=client, message=message, _=_)
             if await is_on_off(2):
-                await app.send_message(
+                return await app.send_message(
                     chat_id=config.LOGGER_ID,
                     text=f"{message.from_user.mention} just started the bot to check sudolist.\n\nUser ID: {message.from_user.id}",
                 )
             return
-
-        if name.startswith("inf"):
+        if name[0:3] == "inf":
             m = await message.reply_text("🔎")
-            query = f"https://www.youtube.com/watch?v={name.replace('info_', '', 1)}"
+            query = (str(name)).replace("info_", "", 1)
+            query = f"https://www.youtube.com/watch?v={query}"
             results = VideosSearch(query, limit=1)
-
             for result in (await results.next())["result"]:
                 title = result["title"]
                 duration = result["duration"]
@@ -100,68 +89,66 @@ async def start_pm(client, message: Message, _):
                 channel = result["channel"]["name"]
                 link = result["link"]
                 published = result["publishedTime"]
-
             searched_text = _["start_6"].format(
                 title, duration, views, published, channellink, channel, app.mention
             )
-
             key = InlineKeyboardMarkup(
-                [[
-                    InlineKeyboardButton(text=_["S_B_8"], url=link),
-                    InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT),
-                ]]
+                [
+                    [
+                        InlineKeyboardButton(text=_["S_B_8"], url=link),
+                        InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT),
+                    ],
+                ]
             )
-
             await m.delete()
             sent = await app.send_photo(
                 chat_id=message.chat.id,
                 photo=thumbnail,
                 caption=searched_text,
                 reply_markup=key,
-                message_effect_id=random.choice(EFFECT_IDS),
             )
             await react_random(sent)
             return
+    else:
+        out = private_panel(_)
+        sent = await message.reply_video(
+            random.choice(NEXI_VID),
+            caption=_["start_2"].format(message.from_user.mention, app.mention),
+            reply_markup=InlineKeyboardMarkup(out),
+        )
+        await react_random(sent)
+        if await is_on_off(2):
+            return await app.send_message(
+                chat_id=config.LOGGER_ID,
+                text=f"{message.from_user.mention} just started the bot.\nUser ID: {message.from_user.id}",
+            )
 
-    # NORMAL START (unchanged)
-    out = private_panel(_)
-    sent = await message.reply_video(
-        random.choice(NEXI_VID),
-        caption=_["start_2"].format(message.from_user.mention, app.mention),
-        reply_markup=InlineKeyboardMarkup(out),
-        message_effect_id=random.choice(EFFECT_IDS),
-    )
-    await react_random(sent)
-
-# ================= GROUP START ================= #
 
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def start_gp(client, message: Message, _):
     out = start_panel(_)
     uptime = int(time.time() - _boot_)
-
     sent = await message.reply_video(
         random.choice(NEXI_VID),
         caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
         reply_markup=InlineKeyboardMarkup(out),
-        message_effect_id=random.choice(EFFECT_IDS),
     )
     await react_random(sent)
-    await add_served_chat(message.chat.id)
+    return await add_served_chat(message.chat.id)
 
-# ================= WELCOME ================= #
 
 @app.on_message(filters.new_chat_members, group=-1)
 async def welcome(client, message: Message):
     for member in message.new_chat_members:
         try:
-            _ = get_string(await get_lang(message.chat.id))
-
+            language = await get_lang(message.chat.id)
+            _ = get_string(language)
             if await is_banned_user(member.id):
-                await message.chat.ban_member(member.id)
-                return
-
+                try:
+                    await message.chat.ban_member(member.id)
+                except:
+                    pass
             if member.id == app.id:
                 if message.chat.type != ChatType.SUPERGROUP:
                     sent = await message.reply_text(_["start_4"])
@@ -190,7 +177,6 @@ async def welcome(client, message: Message):
                         app.mention,
                     ),
                     reply_markup=InlineKeyboardMarkup(out),
-                    message_effect_id=random.choice(EFFECT_IDS),
                 )
                 await react_random(sent)
                 await add_served_chat(message.chat.id)
