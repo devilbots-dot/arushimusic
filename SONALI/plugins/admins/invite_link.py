@@ -6,7 +6,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from SONALI import app
 from SONALI.misc import SUDOERS
-from SONALI.utils.Dolly_BAN import admin_filter
+from SONALI.utils.RAUSHAN_ban import admin_filter
 
 
 ADD_BUTTON = InlineKeyboardMarkup(
