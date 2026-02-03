@@ -1,4 +1,4 @@
-mport os
+import os
 import csv
 from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
