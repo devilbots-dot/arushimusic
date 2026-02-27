@@ -25,7 +25,49 @@ from SONALI.utils.formatters import get_readable_time
 from SONALI.utils.inline import help_pannel, private_panel, start_panel
 from config import BANNED_USERS
 from strings import get_string
+import requests
 
+BOT_TOKEN = config.BOT_TOKEN
+BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
+
+def hybrid_colorize_markup(chat_id, message_id, panel):
+    new_keyboard = []
+
+    for i, row in enumerate(panel):
+        new_row = []
+        for j, btn in enumerate(row):
+            btn_data = {"text": btn.text}
+
+            # Preserve original action
+            if btn.url:
+                btn_data["url"] = btn.url
+            elif btn.callback_data:
+                btn_data["callback_data"] = btn.callback_data
+            elif getattr(btn, "user_id", None):
+                btn_data["url"] = f"tg://user?id={btn.user_id}"
+
+            # 🎨 Yaha tum decide kar sakte ho kaunse buttons color honge
+
+            # 1st row → Blue
+            if i == 0:
+                btn_data["style"] = "primary"
+
+            # 4th row → Red
+            if i == 3:
+                btn_data["style"] = "danger"
+
+            new_row.append(btn_data)
+
+        new_keyboard.append(new_row)
+
+    requests.post(
+        f"{BASE_URL}/editMessageReplyMarkup",
+        json={
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "reply_markup": {"inline_keyboard": new_keyboard},
+        },
+)
 # --------------------------
 
 NEXI_VID = [
@@ -111,12 +153,16 @@ async def start_pm(client, message: Message, _):
             return
     else:
         out = private_panel(_)
-        sent = await message.reply_video(
-            random.choice(NEXI_VID),
-            caption=_["start_2"].format(message.from_user.mention, app.mention),
-            reply_markup=InlineKeyboardMarkup(out),
-        )
-        await react_random(sent)
+sent = await message.reply_video(
+    random.choice(NEXI_VID),
+    caption=_["start_2"].format(message.from_user.mention, app.mention),
+    reply_markup=InlineKeyboardMarkup(out),
+)
+
+# 🔥 Hybrid color apply
+hybrid_colorize_markup(message.chat.id, sent.id, out)
+
+await react_random(sent)
         if await is_on_off(2):
             return await app.send_message(
                 chat_id=config.LOGGER_ID,
