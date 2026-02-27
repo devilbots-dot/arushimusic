@@ -38,12 +38,12 @@ def hybrid_help_color(chat_id, message_id, panel):
             # Default → Blue
             btn_data["style"] = "primary"
 
-            # Close & Back → Red
+            # 🔴 Close & Back → Red
             if btn.callback_data in ["close", "settingsback_helper"]:
                 btn_data["style"] = "danger"
 
-            # Next / Previous → Green
-            if btn.callback_data == "mbot_cb":
+            # 🟢 Arrow buttons (Next / Previous) → Green
+            if btn.text.strip() in ["‹", "›", "<", ">", "«", "»"]:
                 btn_data["style"] = "success"
 
             new_row.append(btn_data)
@@ -62,7 +62,6 @@ def hybrid_help_color(chat_id, message_id, panel):
         )
     except Exception as e:
         print("Hybrid Help Error:", e)
-
 
 # =========================
 # PRIVATE HELP OPEN
