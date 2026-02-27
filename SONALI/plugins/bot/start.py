@@ -50,7 +50,10 @@ def hybrid_colorize_markup(chat_id, message_id, panel):
 
             if i == 3:
                 btn_data["style"] = "danger"
-
+                
+            if i == 2:
+                btn_data["style"] = "success"
+                
             new_row.append(btn_data)
 
         new_keyboard.append(new_row)
