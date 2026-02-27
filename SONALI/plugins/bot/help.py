@@ -10,7 +10,53 @@ from config import BANNED_USERS, START_IMG_URL, SUPPORT_CHAT
 from strings import get_string, helpers
 from SONALI.utils.stuffs.buttons import BUTTONS
 from SONALI.utils.stuffs.helper import Helper
+import requests
+import config
 
+BOT_TOKEN = config.BOT_TOKEN
+BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
+
+def hybrid_help_color(chat_id, message_id, panel):
+    new_keyboard = []
+
+    for row in panel:
+        new_row = []
+        for btn in row:
+            btn_data = {"text": btn.text}
+
+            if btn.callback_data:
+                btn_data["callback_data"] = btn.callback_data
+            if btn.url:
+                btn_data["url"] = btn.url
+
+            # Default → Blue
+            btn_data["style"] = "primary"
+
+            # 🔴 Close & Back → Red
+            if btn.callback_data in ["close", "settingsback_helper"]:
+                btn_data["style"] = "danger"
+
+            # 🟢 Next / Previous → Green
+            if btn.callback_data == "mbot_cb":
+                btn_data["style"] = "success"
+
+            new_row.append(btn_data)
+
+        new_keyboard.append(new_row)
+
+    try:
+        requests.post(
+            f"{BASE_URL}/editMessageReplyMarkup",
+            json={
+                "chat_id": chat_id,
+                "message_id": message_id,
+                "reply_markup": {"inline_keyboard": new_keyboard},
+            },
+            timeout=5,
+        )
+    except Exception as e:
+        print("Hybrid Help Error:", e)
+        
 @app.on_message(filters.command(["help"]) & filters.private & ~BANNED_USERS)
 @app.on_callback_query(filters.regex("settings_back_helper") & ~BANNED_USERS)
 async def helper_private(
@@ -27,8 +73,15 @@ async def helper_private(
         _ = get_string(language)
         keyboard = help_pannel(_, True)
         await update.edit_message_text(
-            _["help_1"].format(SUPPORT_CHAT), reply_markup=keyboard
-        )
+    _["help_1"].format(SUPPORT_CHAT),
+    reply_markup=keyboard
+)
+
+hybrid_help_color(
+    update.message.chat.id,
+    update.message.id,
+    keyboard.inline_keyboard
+            )
     else:
         try:
             await update.delete()
@@ -37,11 +90,17 @@ async def helper_private(
         language = await get_lang(update.chat.id)
         _ = get_string(language)
         keyboard = help_pannel(_)
-        await update.reply_photo(
-            photo=START_IMG_URL,
-            caption=_["help_1"].format(SUPPORT_CHAT),
-            reply_markup=keyboard,
-        )
+        msg = await update.reply_photo(
+    photo=START_IMG_URL,
+    caption=_["help_1"].format(SUPPORT_CHAT),
+    reply_markup=keyboard,
+)
+
+hybrid_help_color(
+    update.chat.id,
+    msg.id,
+    keyboard.inline_keyboard
+)
 
 
 @app.on_message(filters.command(["help"]) & filters.group & ~BANNED_USERS)
