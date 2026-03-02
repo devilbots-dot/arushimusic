@@ -7,14 +7,11 @@ from pyrogram.types import (
     InlineKeyboardMarkup,
     Message,
 )
-from pyrogram.types import InputMediaPhoto
 from py_yt import VideosSearch
 import config
 from SONALI import app
 from SONALI.misc import _boot_
 from SONALI.plugins.sudo.sudoers import sudoers_list
-from SONALI.utils.database import get_served_chats, get_served_users, get_sudoers
-from SONALI.utils import bot_sys_stats
 from SONALI.utils.database import (
     add_served_chat,
     add_served_user,
@@ -28,65 +25,35 @@ from SONALI.utils.formatters import get_readable_time
 from SONALI.utils.inline import help_pannel, private_panel, start_panel
 from config import BANNED_USERS
 from strings import get_string
-import requests
-
-BOT_TOKEN = config.BOT_TOKEN
-BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
-
-# 🔥 Premium Emoji ID
-PREMIUM_EMOJI_ID = 5420163708674384414
 
 
-# -------------------------- PREMIUM BUTTON WRAPPER --------------------------
-
-def apply_premium_emoji(panel):
-    if panel and len(panel) > 0 and len(panel[0]) > 0:
-        btn = panel[0][0]
-        emoji = f"<emoji id={PREMIUM_EMOJI_ID}>⭐</emoji>"
-        btn.text = f"{emoji} {btn.text} {emoji}"
-    return panel
+# 🔥 YOUR PREMIUM EMOJI ID
+PREMIUM_EMOJI_ID = "5420163708674384414"
 
 
-# -------------------------- HYBRID MARKUP --------------------------
+# ------------------ BUTTON UPGRADE (SAFE) ------------------
 
-def hybrid_colorize_markup(chat_id, message_id, panel):
-    new_keyboard = []
+def upgrade_buttons(panel):
+    if not panel:
+        return panel
 
     for i, row in enumerate(panel):
-        new_row = []
-        for j, btn in enumerate(row):
-            btn_data = {"text": btn.text}
+        for btn in row:
 
-            if btn.url:
-                btn_data["url"] = btn.url
-            elif btn.callback_data:
-                btn_data["callback_data"] = btn.callback_data
-            elif getattr(btn, "user_id", None):
-                btn_data["url"] = f"tg://user?id={btn.user_id}"
-
+            # First Row → Premium + Blue
             if i == 0:
-                btn_data["style"] = "primary"
-            if i == 3:
-                btn_data["style"] = "danger"
-            if i == 2:
-                btn_data["style"] = "success"
+                btn.icon_custom_emoji_id = PREMIUM_EMOJI_ID
+                btn.style = "primary"
 
-            new_row.append(btn_data)
+            # Third Row → Green
+            elif i == 2:
+                btn.style = "success"
 
-        new_keyboard.append(new_row)
+            # Fourth Row → Red
+            elif i == 3:
+                btn.style = "danger"
 
-    try:
-        requests.post(
-            f"{BASE_URL}/editMessageReplyMarkup",
-            json={
-                "chat_id": chat_id,
-                "message_id": message_id,
-                "reply_markup": {"inline_keyboard": new_keyboard},
-            },
-            timeout=5,
-        )
-    except Exception as e:
-        print("Hybrid Error:", e)
+    return panel
 
 
 # --------------------------
@@ -97,8 +64,6 @@ NEXI_VID = [
     "https://graph.org/file/83ebf52e8bbf138620de7.mp4",
     "https://files.catbox.moe/0fq20c.mp4",
     "https://graph.org/file/318eac81e3d4667edcb77.mp4",
-    "https://graph.org/file/7c1aa59649fbf3ab422da.mp4",
-    "https://files.catbox.moe/t0nepm.mp4",
 ]
 
 REACTIONS = ["🔥", "❤️", "🎉", "😍", "😂", "⚡", "💯"]
@@ -115,7 +80,7 @@ async def react_random(msg: Message):
         pass
 
 
-# -------------------------- START PRIVATE --------------------------
+# ------------------ PRIVATE START ------------------
 
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
@@ -125,31 +90,33 @@ async def start_pm(client, message: Message, _):
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
 
-        if name[0:4] == "help":
+        # HELP PANEL
+        if name.startswith("help"):
             keyboard = help_pannel(_)
-            keyboard = apply_premium_emoji(keyboard)
+            keyboard = upgrade_buttons(keyboard)
 
             sent = await message.reply_video(
                 random.choice(NEXI_VID),
                 caption=_["help_1"].format(config.SUPPORT_CHAT),
                 reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode="html",
             )
             await react_random(sent)
             return
 
-        if name[0:3] == "sud":
+        # SUDO LIST
+        if name.startswith("sud"):
             await sudoers_list(client=client, message=message, _=_)
             if await is_on_off(2):
-                return await app.send_message(
+                await app.send_message(
                     chat_id=config.LOGGER_ID,
                     text=f"{message.from_user.mention} checked sudolist.\nUser ID: {message.from_user.id}",
                 )
             return
 
-        if name[0:3] == "inf":
+        # INFO QUERY
+        if name.startswith("inf"):
             m = await message.reply_text("🔎")
-            query = (str(name)).replace("info_", "", 1)
+            query = name.replace("info_", "", 1)
             query = f"https://www.youtube.com/watch?v={query}"
             results = VideosSearch(query, limit=1)
 
@@ -169,12 +136,18 @@ async def start_pm(client, message: Message, _):
 
             key = [
                 [
-                    InlineKeyboardButton(text=_["S_B_8"], url=link),
-                    InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT),
+                    InlineKeyboardButton(
+                        text=_["S_B_8"],
+                        url=link,
+                        icon_custom_emoji_id=PREMIUM_EMOJI_ID,
+                        style="primary",
+                    ),
+                    InlineKeyboardButton(
+                        text=_["S_B_9"],
+                        url=config.SUPPORT_CHAT,
+                    ),
                 ]
             ]
-
-            key = apply_premium_emoji(key)
 
             await m.delete()
             sent = await app.send_photo(
@@ -182,54 +155,56 @@ async def start_pm(client, message: Message, _):
                 photo=thumbnail,
                 caption=searched_text,
                 reply_markup=InlineKeyboardMarkup(key),
-                parse_mode="html",
             )
             await react_random(sent)
             return
 
-    else:
-        out = private_panel(_)
-        out = apply_premium_emoji(out)
+    # NORMAL PRIVATE START
+    out = private_panel(_)
+    out = upgrade_buttons(out)
 
-        sent = await message.reply_video(
-            random.choice(NEXI_VID),
-            caption=_["start_2"].format(message.from_user.mention, app.mention),
-            reply_markup=InlineKeyboardMarkup(out),
-            parse_mode="html",
+    sent = await message.reply_video(
+        random.choice(NEXI_VID),
+        caption=_["start_2"].format(
+            message.from_user.mention,
+            app.mention
+        ),
+        reply_markup=InlineKeyboardMarkup(out),
+    )
+
+    await react_random(sent)
+
+    if await is_on_off(2):
+        await app.send_message(
+            chat_id=config.LOGGER_ID,
+            text=f"{message.from_user.mention} started the bot.\nUser ID: {message.from_user.id}",
         )
 
-        hybrid_colorize_markup(message.chat.id, sent.id, out)
-        await react_random(sent)
 
-        if await is_on_off(2):
-            return await app.send_message(
-                chat_id=config.LOGGER_ID,
-                text=f"{message.from_user.mention} started the bot.\nUser ID: {message.from_user.id}",
-            )
-
-
-# -------------------------- START GROUP --------------------------
+# ------------------ GROUP START ------------------
 
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def start_gp(client, message: Message, _):
     out = start_panel(_)
-    out = apply_premium_emoji(out)
+    out = upgrade_buttons(out)
 
     uptime = int(time.time() - _boot_)
 
     sent = await message.reply_video(
         random.choice(NEXI_VID),
-        caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
+        caption=_["start_1"].format(
+            app.mention,
+            get_readable_time(uptime)
+        ),
         reply_markup=InlineKeyboardMarkup(out),
-        parse_mode="html",
     )
 
     await react_random(sent)
-    return await add_served_chat(message.chat.id)
+    await add_served_chat(message.chat.id)
 
 
-# -------------------------- WELCOME --------------------------
+# ------------------ WELCOME ------------------
 
 @app.on_message(filters.new_chat_members, group=-1)
 async def welcome(client, message: Message):
@@ -245,25 +220,15 @@ async def welcome(client, message: Message):
                     pass
 
             if member.id == app.id:
+
                 if message.chat.type != ChatType.SUPERGROUP:
-                    sent = await message.reply_text(_["start_4"])
-                    await react_random(sent)
                     return await app.leave_chat(message.chat.id)
 
                 if message.chat.id in await blacklisted_chats():
-                    sent = await message.reply_text(
-                        _["start_5"].format(
-                            app.mention,
-                            f"https://t.me/{app.username}?start=sudolist",
-                            config.SUPPORT_CHAT,
-                        ),
-                        disable_web_page_preview=True,
-                    )
-                    await react_random(sent)
                     return await app.leave_chat(message.chat.id)
 
                 out = start_panel(_)
-                out = apply_premium_emoji(out)
+                out = upgrade_buttons(out)
 
                 sent = await message.reply_video(
                     random.choice(NEXI_VID),
@@ -274,12 +239,10 @@ async def welcome(client, message: Message):
                         app.mention,
                     ),
                     reply_markup=InlineKeyboardMarkup(out),
-                    parse_mode="html",
                 )
 
                 await react_random(sent)
                 await add_served_chat(message.chat.id)
-                await message.stop_propagation()
 
         except Exception as ex:
             print(ex)
