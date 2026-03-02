@@ -2,10 +2,13 @@ import time
 import random
 from pyrogram import filters
 from pyrogram.enums import ChatType
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
+from pyrogram.types import InputMediaPhoto
 from py_yt import VideosSearch
-
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 import config
 from SONALI import app
 from SONALI.misc import _boot_
@@ -30,6 +33,22 @@ import requests
 BOT_TOKEN = config.BOT_TOKEN
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
+# 🔥 Premium Emoji ID
+PREMIUM_EMOJI_ID = 5420163708674384414
+
+
+# -------------------------- PREMIUM BUTTON WRAPPER --------------------------
+
+def apply_premium_emoji(panel):
+    if panel and len(panel) > 0 and len(panel[0]) > 0:
+        btn = panel[0][0]
+        emoji = f"<emoji id={PREMIUM_EMOJI_ID}>⭐</emoji>"
+        btn.text = f"{emoji} {btn.text} {emoji}"
+    return panel
+
+
+# -------------------------- HYBRID MARKUP --------------------------
+
 def hybrid_colorize_markup(chat_id, message_id, panel):
     new_keyboard = []
 
@@ -47,13 +66,11 @@ def hybrid_colorize_markup(chat_id, message_id, panel):
 
             if i == 0:
                 btn_data["style"] = "primary"
-
             if i == 3:
                 btn_data["style"] = "danger"
-                
             if i == 2:
                 btn_data["style"] = "success"
-                
+
             new_row.append(btn_data)
 
         new_keyboard.append(new_row)
@@ -70,60 +87,72 @@ def hybrid_colorize_markup(chat_id, message_id, panel):
         )
     except Exception as e:
         print("Hybrid Error:", e)
+
+
 # --------------------------
 
 NEXI_VID = [
-"https://telegra.ph/file/1a3c152717eb9d2e94dc2.mp4",
-"https://files.catbox.moe/ln00jb.mp4",
-"https://graph.org/file/83ebf52e8bbf138620de7.mp4",
-"https://files.catbox.moe/0fq20c.mp4",
-"https://graph.org/file/318eac81e3d4667edcb77.mp4",
-"https://graph.org/file/7c1aa59649fbf3ab422da.mp4",
-"https://files.catbox.moe/t0nepm.mp4",
+    "https://telegra.ph/file/1a3c152717eb9d2e94dc2.mp4",
+    "https://files.catbox.moe/ln00jb.mp4",
+    "https://graph.org/file/83ebf52e8bbf138620de7.mp4",
+    "https://files.catbox.moe/0fq20c.mp4",
+    "https://graph.org/file/318eac81e3d4667edcb77.mp4",
+    "https://graph.org/file/7c1aa59649fbf3ab422da.mp4",
+    "https://files.catbox.moe/t0nepm.mp4",
 ]
 
-# 🔥 Random reaction list
 REACTIONS = ["🔥", "❤️", "🎉", "😍", "😂", "⚡", "💯"]
+
 
 async def react_random(msg: Message):
     try:
         await app.send_reaction(
             chat_id=msg.chat.id,
             message_id=msg.id,
-            reaction=random.choice(REACTIONS)
+            reaction=random.choice(REACTIONS),
         )
     except:
         pass
 
 
+# -------------------------- START PRIVATE --------------------------
+
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
 async def start_pm(client, message: Message, _):
     await add_served_user(message.from_user.id)
+
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
+
         if name[0:4] == "help":
             keyboard = help_pannel(_)
+            keyboard = apply_premium_emoji(keyboard)
+
             sent = await message.reply_video(
                 random.choice(NEXI_VID),
                 caption=_["help_1"].format(config.SUPPORT_CHAT),
-                reply_markup=keyboard,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode="html",
             )
             await react_random(sent)
             return
+
         if name[0:3] == "sud":
             await sudoers_list(client=client, message=message, _=_)
             if await is_on_off(2):
                 return await app.send_message(
                     chat_id=config.LOGGER_ID,
-                    text=f"{message.from_user.mention} just started the bot to check sudolist.\n\nUser ID: {message.from_user.id}",
+                    text=f"{message.from_user.mention} checked sudolist.\nUser ID: {message.from_user.id}",
                 )
             return
+
         if name[0:3] == "inf":
             m = await message.reply_text("🔎")
             query = (str(name)).replace("info_", "", 1)
             query = f"https://www.youtube.com/watch?v={query}"
             results = VideosSearch(query, limit=1)
+
             for result in (await results.next())["result"]:
                 title = result["title"]
                 duration = result["duration"]
@@ -133,58 +162,74 @@ async def start_pm(client, message: Message, _):
                 channel = result["channel"]["name"]
                 link = result["link"]
                 published = result["publishedTime"]
+
             searched_text = _["start_6"].format(
                 title, duration, views, published, channellink, channel, app.mention
             )
-            key = InlineKeyboardMarkup(
+
+            key = [
                 [
-                    [
-                        InlineKeyboardButton(text=_["S_B_8"], url=link),
-                        InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT),
-                    ],
+                    InlineKeyboardButton(text=_["S_B_8"], url=link),
+                    InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT),
                 ]
-            )
+            ]
+
+            key = apply_premium_emoji(key)
+
             await m.delete()
             sent = await app.send_photo(
                 chat_id=message.chat.id,
                 photo=thumbnail,
                 caption=searched_text,
-                reply_markup=key,
+                reply_markup=InlineKeyboardMarkup(key),
+                parse_mode="html",
             )
             await react_random(sent)
             return
+
     else:
         out = private_panel(_)
+        out = apply_premium_emoji(out)
+
         sent = await message.reply_video(
             random.choice(NEXI_VID),
             caption=_["start_2"].format(message.from_user.mention, app.mention),
             reply_markup=InlineKeyboardMarkup(out),
+            parse_mode="html",
         )
 
-        # 🔥 Hybrid color apply
         hybrid_colorize_markup(message.chat.id, sent.id, out)
-
         await react_random(sent)
 
         if await is_on_off(2):
             return await app.send_message(
                 chat_id=config.LOGGER_ID,
-                text=f"{message.from_user.mention} just started the bot.\nUser ID: {message.from_user.id}",
-                )
+                text=f"{message.from_user.mention} started the bot.\nUser ID: {message.from_user.id}",
+            )
+
+
+# -------------------------- START GROUP --------------------------
 
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def start_gp(client, message: Message, _):
     out = start_panel(_)
+    out = apply_premium_emoji(out)
+
     uptime = int(time.time() - _boot_)
+
     sent = await message.reply_video(
         random.choice(NEXI_VID),
         caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
         reply_markup=InlineKeyboardMarkup(out),
+        parse_mode="html",
     )
+
     await react_random(sent)
     return await add_served_chat(message.chat.id)
 
+
+# -------------------------- WELCOME --------------------------
 
 @app.on_message(filters.new_chat_members, group=-1)
 async def welcome(client, message: Message):
@@ -192,11 +237,13 @@ async def welcome(client, message: Message):
         try:
             language = await get_lang(message.chat.id)
             _ = get_string(language)
+
             if await is_banned_user(member.id):
                 try:
                     await message.chat.ban_member(member.id)
                 except:
                     pass
+
             if member.id == app.id:
                 if message.chat.type != ChatType.SUPERGROUP:
                     sent = await message.reply_text(_["start_4"])
@@ -216,6 +263,8 @@ async def welcome(client, message: Message):
                     return await app.leave_chat(message.chat.id)
 
                 out = start_panel(_)
+                out = apply_premium_emoji(out)
+
                 sent = await message.reply_video(
                     random.choice(NEXI_VID),
                     caption=_["start_3"].format(
@@ -225,9 +274,12 @@ async def welcome(client, message: Message):
                         app.mention,
                     ),
                     reply_markup=InlineKeyboardMarkup(out),
+                    parse_mode="html",
                 )
+
                 await react_random(sent)
                 await add_served_chat(message.chat.id)
                 await message.stop_propagation()
+
         except Exception as ex:
             print(ex)
