@@ -37,6 +37,28 @@ async def stream(
 ):
     if not result:
         return
+from urllib.parse import urlparse
+
+# --- START SAFE URL CHECK ---
+ALLOWED_DOMAINS = [
+    "youtube.com", "youtu.be",
+    "spotify.com", "open.spotify.com",
+    "apple.com", "music.apple.com",
+    "soundcloud.com",
+    "resso.com"
+]
+
+if url:
+    try:
+        hostname = urlparse(url).hostname or ""
+        if not any(domain in hostname for domain in ALLOWED_DOMAINS):
+            return await mystic.edit_text("❌ Invalid URL or domain not allowed.")
+        if any(c in url for c in ";$&|`"):  # block dangerous shell characters
+            return await mystic.edit_text("❌ URL contains unsafe characters.")
+    except Exception:
+        return await mystic.edit_text("❌ Invalid URL format.")
+# --- END SAFE URL CHECK ---
+    
     if forceplay:
         await RAUSHAN.force_stop_stream(chat_id)
     if streamtype == "playlist":
