@@ -43,7 +43,32 @@ from config import BANNED_USERS, lyrical
     & filters.group
     & ~BANNED_USERS
 )
-@PlayWrapper
+@(_, message, mystic, file_path):
+            message_link = await Telegram.get_link(message)
+            file_name = await Telegram.get_filename(audio_telegram, audio=True)
+            dur = await Telegram.get_duration(audio_telegram, file_path)
+            details = {
+                "title": file_name,
+                "link": message_link,
+                "path": file_path,
+                "dur": dur,
+            }
+
+            try:
+                await stream(
+                    _,
+                    mystic,
+                    user_id,
+                    details,
+                    chat_id,
+                    user_name,
+                    message.chat.id,
+                    streamtype="telegram",
+                    forceplay=fplay,
+                )
+            except Exception as e:
+                ex_type = type(e).__name__
+                err = e if ex_type == "AssistantErPlayWrapper
 async def play_commnd(
     client,
     message: Message,
@@ -55,6 +80,22 @@ async def play_commnd(
     url,
     fplay,
 ):
+
+    # -------- SECURITY FILTER START --------
+    text = (message.text or "").lower()
+
+    BLOCKED_PATTERNS = [
+        "curl", "wget", "cat", ".env", "base64", "ifs",
+        "$", "`", "|", ";", "&", "(", ")", "<", ">"
+    ]
+
+    if any(p in text for p in BLOCKED_PATTERNS):
+        try:
+            await message.reply_text("❌ Not Supported.\nContact Owner.")
+        except:
+            pass
+        return
+    
     
     mystic = await message.reply_text(
         _["play_2"].format(channel) if channel else _["play_1"]
@@ -85,32 +126,7 @@ async def play_commnd(
                 _["play_6"].format(config.DURATION_LIMIT_MIN, app.mention)
             )
         file_path = await Telegram.get_filepath(audio=audio_telegram)
-        if await Telegram.download(_, message, mystic, file_path):
-            message_link = await Telegram.get_link(message)
-            file_name = await Telegram.get_filename(audio_telegram, audio=True)
-            dur = await Telegram.get_duration(audio_telegram, file_path)
-            details = {
-                "title": file_name,
-                "link": message_link,
-                "path": file_path,
-                "dur": dur,
-            }
-
-            try:
-                await stream(
-                    _,
-                    mystic,
-                    user_id,
-                    details,
-                    chat_id,
-                    user_name,
-                    message.chat.id,
-                    streamtype="telegram",
-                    forceplay=fplay,
-                )
-            except Exception as e:
-                ex_type = type(e).__name__
-                err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+        if await Telegram.downloadr" else _["general_2"].format(ex_type)
                 return await mystic.edit_text(err)
             return await mystic.delete()
         return
@@ -665,3 +681,4 @@ async def slider_queries(client, CallbackQuery, _):
         return await CallbackQuery.edit_message_media(
             media=med, reply_markup=InlineKeyboardMarkup(buttons)
         )
+
