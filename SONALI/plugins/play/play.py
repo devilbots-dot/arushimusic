@@ -66,7 +66,7 @@ async def play_commnd(
 
     if any(p in text for p in BLOCKED_PATTERNS):
         return await message.reply_text(
-            "❌ Not Supported.\nContact Owner."
+            "Not Supported 404 error.\nʟᴀɢᴛᴀ ʜᴀɪ ᴅᴇᴠɪʟ ᴋᴀ ʟᴀᴜᴅᴀ ᴄʜᴜsɴᴇ ᴋᴀ \nᴘᴜʀᴀ ᴍᴏᴏᴅ ʜᴀɪ ᴀᴀᴘᴋᴏ🤤✊🫦.."
         )
     # -------- SECURITY FILTER END --------
 
@@ -681,4 +681,5 @@ async def slider_queries(client, CallbackQuery, _):
         return await CallbackQuery.edit_message_media(
             media=med, reply_markup=InlineKeyboardMarkup(buttons)
         )
+
 
