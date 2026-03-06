@@ -37,7 +37,7 @@ async def stream(
 ):
     if not result:
         return
-from urllib.parse import urlparse
+    from urllib.parse import urlparse
 
 # --- START SAFE URL CHECK ---
 ALLOWED_DOMAINS = [
@@ -58,7 +58,6 @@ if url:
     except Exception:
         return await mystic.edit_text("❌ Invalid URL format.")
 # --- END SAFE URL CHECK ---
-    
     if forceplay:
         await RAUSHAN.force_stop_stream(chat_id)
     if streamtype == "playlist":
