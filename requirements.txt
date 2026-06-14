@@ -36,7 +36,7 @@ unidecode
 urllib3
 wget
 py-yt-search
-git+https://github.com/KurimuzonAkuma/pyrogram@dev
+pyrogram==2.0.106
 git+https://github.com/yt-dlp/yt-dlp.git
 git+https://github.com/alexmercerind/youtube-search-python@main
 git+https://github.com/joetats/youtube_search@master
