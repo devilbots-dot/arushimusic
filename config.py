@@ -50,6 +50,7 @@ AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", False))
 
 SPOTIFY_CLIENT_ID = getenv("SPOTIFY_CLIENT_ID", None)
 SPOTIFY_CLIENT_SECRET = getenv("SPOTIFY_CLIENT_SECRET", None)
+REMOVE_BG_API_KEY = getenv("REMOVE_BG_API_KEY", None)
 
 # ===============================================
 
