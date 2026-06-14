@@ -10,9 +10,12 @@ from SONALI.misc import sudo
 from SONALI.plugins import ALL_MODULES
 from SONALI.utils.database import get_banned_users, get_gbanned
 from config import BANNED_USERS
+from keep_alive import start_keep_alive
 
 
 async def init():
+    start_keep_alive()
+
     if (
         not config.STRING1
         and not config.STRING2
