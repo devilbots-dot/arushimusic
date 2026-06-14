@@ -40,10 +40,16 @@ class RAUSHAN(Client):
                 f"Bot has failed to access the log group/channel.\n  Reason : {type(ex).__name__}."
             )
 
-        a = await self.get_chat_member(config.LOGGER_ID, self.id)
-        if a.status != ChatMemberStatus.ADMINISTRATOR:
-            LOGGER(__name__).error(
-                "Please promote your bot as an admin in your log group/channel."
+        try:
+    a = await self.get_chat_member(config.LOGGER_ID, self.id)
+    if a.status != ChatMemberStatus.ADMINISTRATOR:
+        LOGGER(__name__).error(
+            "Please promote your bot as an admin in your log group/channel."
+        )
+     except Exception as ex:
+        LOGGER(__name__).error(
+            f"LOGGER_ID Check Failed: {ex}"
+    )
             )
 
         LOGGER(__name__).info(f"Music Bot Started as {self.name}")
