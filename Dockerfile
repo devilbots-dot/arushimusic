@@ -1,14 +1,14 @@
-FROM nikolaik/python-nodejs:python3.11-nodejs19
+FROM python:3.11-slim
 
 RUN apt-get update && \
-    apt-get install -y ffmpeg aria2 && \
+    apt-get install -y ffmpeg aria2 curl gnupg nodejs npm && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY . /app/
-WORKDIR /app/
+COPY . /app
+WORKDIR /app
 
-RUN python -m pip install --upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD bash start
+CMD ["bash", "start"]
