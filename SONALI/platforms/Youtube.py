@@ -49,14 +49,16 @@ async def download_song(link: str) -> str:
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
             return file_path
         return None
-    except Exception:
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except Exception:
-                pass
-        return None
+    except Exception as e:
+    print("DOWNLOAD ERROR:", repr(e))
 
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
+
+    return None
 
 async def download_video(link: str) -> str:
     video_id = link.split("v=")[-1].split("&")[0] if "v=" in link else link
@@ -86,13 +88,16 @@ async def download_video(link: str) -> str:
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
             return file_path
         return None
-    except Exception:
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except Exception:
-                pass
-        return None
+    except Exception as e:
+    print("DOWNLOAD ERROR:", repr(e))
+
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
+
+    return None
 
 
 class YouTubeAPI:
