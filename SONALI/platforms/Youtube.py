@@ -37,6 +37,10 @@ async def download_song(link: str) -> str:
                 params={"url": video_id, "type": "audio", "api_key": API_KEY},
                 timeout=aiohttp.ClientTimeout(total=300)
             ) as resp:
+                print("STATUS:", resp.status)
+                print("URL:", resp.url)
+                print("HEADERS:", resp.headers)
+
                 if resp.status != 200:
                     return None
                 with open(file_path, "wb") as f:
@@ -71,6 +75,9 @@ async def download_video(link: str) -> str:
                 params={"url": video_id, "type": "video", "api_key": API_KEY},
                 timeout=aiohttp.ClientTimeout(total=600)
             ) as resp:
+                print("STATUS:", resp.status)
+                print("URL:", resp.url)
+                print("HEADERS:", resp.headers)
                 if resp.status != 200:
                     return None
                 with open(file_path, "wb") as f:
