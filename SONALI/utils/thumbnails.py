@@ -13,6 +13,10 @@ def clear(text):
     return re.sub("\s+", " ", text).strip()
 
 async def get_thumb(videoid):
+    # FIX 1: Agar cache folder nahi hai, toh use automatically banayein
+    if not os.path.exists("cache"):
+        os.makedirs("cache")
+
     if os.path.isfile(f"cache/{videoid}.png"):
         return f"cache/{videoid}.png"
 
@@ -49,27 +53,23 @@ async def get_thumb(videoid):
 
         youtube = Image.open(f"cache/thumb{videoid}.png").convert("RGBA")
 
-        
         background = youtube.resize((1280, 720)).filter(ImageFilter.GaussianBlur(radius=18))
         enhancer = ImageEnhance.Brightness(background)
         background = enhancer.enhance(0.45)
         draw = ImageDraw.Draw(background)
 
-        
         for _ in range(240):
             x = random.randint(0, 1280)
             y = random.randint(0, 720)
             r = random.randint(1, 3)
             draw.ellipse((x, y, x+r, y+r), fill="white")
 
-        
         music_font = ImageFont.truetype("SONALI/assets/font.ttf", 28)
         for _ in range(18):
             x = random.randint(100, 1180)
             y = random.randint(80, 640)
             draw.text((x, y), "♪", fill="white", font=music_font)
 
-        
         diamond = Image.new("RGBA", (260, 260), (255,255,255,0))
         ddraw = ImageDraw.Draw(diamond)
 
@@ -79,7 +79,6 @@ async def get_thumb(videoid):
             width=6
         )
 
-        
         try:
             note_img = Image.open("SONALI/assets/diamond_note.png").convert("RGBA")
             note_img = note_img.resize((110, 110))
@@ -102,14 +101,12 @@ async def get_thumb(videoid):
         circ = Image.new("RGBA", (CIRCLE_SIZE, CIRCLE_SIZE))
         circ.paste(yt_thumb, (0,0), mask)
 
-        
         RING_PADDING = 45
         ring_size = CIRCLE_SIZE + (RING_PADDING * 2)
 
         ring = Image.new("RGBA", (ring_size, ring_size), (0,0,0,0))
         rdraw = ImageDraw.Draw(ring)
 
-        
         rdraw.ellipse(
             (10, 10, ring_size-10, ring_size-10),
             outline="white",
@@ -119,21 +116,19 @@ async def get_thumb(videoid):
         center = ring_size // 2
         radius = (ring_size // 2) - 12
 
-        
-        for angle in range(0, 360, 6):   # extra dense
+        for angle in range(0, 360, 6):   
             rad = math.radians(angle)
 
             x1 = center + int(radius * math.cos(rad))
             y1 = center + int(radius * math.sin(rad))
 
-            spike_length = random.randint(12, 55)  # longer random spikes
+            spike_length = random.randint(12, 55)
 
             x2 = center + int((radius + spike_length) * math.cos(rad))
             y2 = center + int((radius + spike_length) * math.sin(rad))
 
             rdraw.line([(x1, y1), (x2, y2)], fill="white", width=4)
 
-        # center align
         ring_x = 390
         ring_y = 115
         circle_x = ring_x + RING_PADDING
@@ -142,15 +137,15 @@ async def get_thumb(videoid):
         background.paste(ring, (ring_x, ring_y), ring)
         background.paste(circ, (circle_x, circle_y), circ)
 
-        
         arial = ImageFont.truetype("SONALI/assets/font2.ttf", 30)
         font = ImageFont.truetype("SONALI/assets/font.ttf", 30)
         bold_font = ImageFont.truetype("SONALI/assets/font.ttf", 33)
         small_neon = ImageFont.truetype("SONALI/assets/font.ttf", 22)
 
-        text_size = draw.textsize("@Ankitgupta21444 ", font=font)
+        # FIX 2: draw.textsize ki jagah draw.textlength ka use karein naye Pillow version ke liye
+        text_width = draw.textlength("@Ankitgupta21444 ", font=font)
         draw.text(
-            (1280 - text_size[0] - 10, 10),
+            (1280 - text_width - 10, 10),
             "@Ankitgupta21444",
             fill="yellow",
             font=font,
@@ -191,5 +186,8 @@ async def get_thumb(videoid):
         return f"cache/{videoid}.png"
 
     except Exception as e:
-        print(e)
+        # FIX 3: Traceback ko poora print karein taaki koi aur choti galti ho toh terminal me dikh jaye
+        import traceback
+        traceback.print_exc()
         return YOUTUBE_IMG_URL
+        
